@@ -3,8 +3,23 @@ import gzip
 import os
 from datetime import datetime, timezone, timedelta
 
-BUCKET = "my-instance-logs-123599503689-eu-central-1-an"
+
+
+
+
+
+
+
+
+
 REGION = "eu-central-1"
+
+ssm = boto3.client("ssm",region_name=REGION)
+bucket_name = ssm.get_parameter (
+    Name="/logging/flowlogs/bucket"
+) ["Parameter"]["Value"]
+
+BUCKET = bucket_name
 ACCOUNT = "123599503689"
 
 STATE_FILE = os.path.join(os.path.dirname(__file__), ".flowlog_state")
