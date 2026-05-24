@@ -208,3 +208,51 @@ resource "aws_s3_bucket" "cloudtrail" {
 resource "aws_s3_bucket" "flow_logs" {
   bucket = "vpc-flow-logs-${data.aws_caller_identity.current.account_id}"
 }
+
+#--------------------------------------------------
+#Read-Only IAM User
+#--------------------------------------------------
+
+resource "aws_iam_user" "pipeline" {
+  name = "detection-lab-pipeline"
+  tags = {
+    Name = "detection-lab-pipeline"
+  }
+}
+
+resource "aws_iam_access_key" "pipeline" {
+  user = aws_iam_user.pipeline.name
+}
+
+data "aws_iam_policy_document" "pipeline_read_only" {
+  statement {
+    effect = "Allow"
+    actions = ["s3:GetObject", "s3:ListBucket"]
+    resources = [
+      aws_s3_bucket.cloudtrail.arn,
+      "${aws_s3_bucket.cloudtrail.arn}/*",
+      aws_s3_bucket.flow_logs.arn,
+      "${aws_s3_bucket.flow_logs.arn}/*"
+    ]
+  }
+}
+
+resource "aws_iam_user_policy" "pipeline_read_only" {
+  name = "detection-lab-pipeline-read-only"
+  policy = data.aws_iam_policy_document.pipeline_read_only.json
+  user = aws_iam_user.pipeline.name
+}
+
+####-----> Credentials for the read-only user (for pipeline access)
+
+resource "aws_ssm_parameter" "pipeline_key_id" {
+  name = "/pipeline/credentials/access_key_id"
+  value = aws_iam_access_key.pipeline.id
+  type = "String"
+}
+
+resource "aws_ssm_parameter" "pipeline_secret" {
+  name = /detection-lab/pipeline/secret_access_key"
+  value = aws_iam_access_key.pipeline.secret
+  type = "SecureString"
+}
