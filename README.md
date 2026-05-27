@@ -12,10 +12,12 @@ Pulls log data from two AWS sources on a configurable look-back window, normalis
 
 ```mermaid
 flowchart LR
-  CT[CloudTrail<br/>(API/IAM events)] --> CTB[(CloudTrail S3 bucket)]
-  FL[VPC Flow Logs<br/>(network)] --> FLB[(Flow Logs S3 bucket)]
+  CT["CloudTrail\n(API/IAM events)"] --> CTB[(CloudTrail S3 bucket)]
+  FL["VPC Flow Logs\n(network)"] --> FLB[(Flow Logs S3 bucket)]
+
   CTB --> ING[Ingestors]
   FLB --> ING
+
   ING --> RULES[Rules engine]
   RULES --> REP[Reporter]
 ```
